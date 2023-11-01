@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/funcr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 
@@ -33,15 +37,45 @@ func TestRunFunction(t *testing.T) {
 		want   want
 	}{
 		"ResponseIsReturned": {
-			reason: "The Function should return a fatal result if no input was specified",
+			reason: "The Function should return the expected result",
 			args: args{
 				req: &fnv1beta1.RunFunctionRequest{
 					Meta: &fnv1beta1.RequestMeta{Tag: "hello"},
 					Input: resource.MustStructJSON(`{
-						"apiVersion": "dummy.fn.crossplane.io",
-						"kind": "Input",
-						"example": "Hello, world!"
+						"apiVersion": "fn.crossplane.servicebinding.io",
+						"kind": "Decorator",
+						"config": {
+							"requireWriteConnectionSecretToRef": true,
+							"providerConfigName": "my-provider-config"
+						}
 					}`),
+					Observed: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							ConnectionDetails: map[string][]byte{
+								"username": []byte("foo"),
+								"password": []byte("bar"),
+							},
+							Resource: &structpb.Struct{
+								Fields: map[string]*structpb.Value{
+									"metadata": structpb.NewStructValue(&structpb.Struct{
+										Fields: map[string]*structpb.Value{
+											"uid": structpb.NewStringValue("my-uid"),
+										},
+									}),
+									"spec": structpb.NewStructValue(&structpb.Struct{
+										Fields: map[string]*structpb.Value{
+											"claimRef": structpb.NewStructValue(&structpb.Struct{
+												Fields: map[string]*structpb.Value{
+													"name":      structpb.NewStringValue("my-claim"),
+													"namespace": structpb.NewStringValue("my-claim-namespace"),
+												},
+											}),
+										},
+									}),
+								},
+							},
+						},
+					},
 				},
 			},
 			want: want{
@@ -60,11 +94,13 @@ func TestRunFunction(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			f := &Function{log: logging.NewNopLogger()}
+			f := &Function{log: logging.NewLogrLogger(NewStdoutLogger())}
 			rsp, err := f.RunFunction(tc.args.ctx, tc.args.req)
 
 			if diff := cmp.Diff(tc.want.rsp, rsp, protocmp.Transform()); diff != "" {
 				t.Errorf("%s\nf.RunFunction(...): -want rsp, +got rsp:\n%s", tc.reason, diff)
+
+				fmt.Printf("\n================\nRESPONSE:\n%+v\n\n", rsp)
 			}
 
 			if diff := cmp.Diff(tc.want.err, err, cmpopts.EquateErrors()); diff != "" {
@@ -72,4 +108,15 @@ func TestRunFunction(t *testing.T) {
 			}
 		})
 	}
+}
+
+// NewStdoutLogger returns a logr.Logger that prints to stdout.
+func NewStdoutLogger() logr.Logger {
+	return funcr.New(func(prefix, args string) {
+		if prefix != "" {
+			fmt.Printf("%s: %s\n", prefix, args)
+		} else {
+			fmt.Println(args)
+		}
+	}, funcr.Options{})
 }

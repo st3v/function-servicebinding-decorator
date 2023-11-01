@@ -1,0 +1,51 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xmysqlinstances.bitnami.database.tanzu.vmware.com
+spec:
+  claimNames:
+    kind: MySQLInstance
+    plural: mysqlinstances
+    categories:
+    - bindable
+  connectionSecretKeys:
+  - provider
+  - type
+  - host
+  - port
+  - database
+  - username
+  - password
+  defaultCompositeDeletePolicy: Background
+  defaultCompositionUpdatePolicy: Automatic
+  group: bitnami.database.tanzu.vmware.com
+  names:
+    kind: XMySQLInstance
+    plural: xmysqlinstances
+  versions:
+  - name: v1alpha1
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            description: Spec of the Composite Resource.
+            properties:
+              storageGB:
+                default: 1
+                description: Desired storage capacity of the database, in Gigabytes.
+                type: integer
+            type: object
+          status:
+            description: Status of the Composite Resource.
+            properties:
+              binding:
+                description: References to a binding secret.
+                properties:
+                  name:
+                    description: Name of the binding secret.
+                    type: string
+                type: object
+            type: object
+        type: object
+    served: true

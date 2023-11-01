@@ -1,0 +1,66 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.13.0
+  name: decorators.fn.crossplane.servicebinding.io
+spec:
+  group: fn.crossplane.servicebinding.io
+  names:
+    categories:
+    - crossplane
+    kind: Decorator
+    listKind: DecoratorList
+    plural: decorators
+    singular: decorator
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Decorator can be used to provide input to this Function.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          config:
+            description: Config specifies the configuration for the decorator
+            properties:
+              providerConfigRef:
+                description: specifies the name of the provider config to use when
+                  creating the binding secret
+                properties:
+                  name:
+                    description: specifies the name of the provider config to use
+                      when creating the binding secret
+                    type: string
+                required:
+                - name
+                type: object
+              requireWriteConnectionSecretToRef:
+                description: specifies whether the decorator should assume all claims
+                  to specify spec.writeConnectionSecretToRef if true, the decorator
+                  will always require the claim to specify spec.writeConnectionSecretToRef
+                  if false, the decorator will create a binding secret if the claim
+                  does not specify spec.writeConnectionSecretToRef or if spec.writeConnectionSecretToRef
+                  refers to a different namespace
+                type: boolean
+            required:
+            - providerConfigRef
+            - requireWriteConnectionSecretToRef
+            type: object
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+        required:
+        - config
+        type: object
+    served: true
+    storage: true

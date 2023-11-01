@@ -1,0 +1,11 @@
+apiVersion: bitnami.database.tanzu.vmware.com/v1alpha1
+kind: XMySQLInstance
+metadata:
+  name: test
+spec:
+  storageGB: 1
+  claimRef:
+    apiVersion: bitnami.database.tanzu.vmware.com/v1alpha1
+    kind: MySQLInstance
+    name: claim
+    namespace: claim-ns

@@ -1,0 +1,22 @@
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-servicebinding-decorator
+  annotations:
+    render.crossplane.io/runtime: Development
+    render.crossplane.io/runtime-development-target: localhost:9443
+spec:
+  package: st3v/function-service-decorator:v0.0.5
+  packagePullPolicy: Always
+
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-patch-and-transform
+  annotations:
+    render.crossplane.io/runtime: Development
+    render.crossplane.io/runtime-development-target: localhost:9444
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/function-patch-and-transform:v0.1.4
