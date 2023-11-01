@@ -19,7 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/client-go/kubernetes/scheme"
 
-	v1alpha1 "github.com/st3v/servicebinding-decorator/input/v1alpha1"
+	"github.com/st3v/servicebinding-decorator/input/v1alpha1"
 )
 
 // Function returns whatever response you ask it to.
@@ -30,19 +30,19 @@ type Function struct {
 }
 
 func init() {
-	// register provideralpha1.Object with the runtime scheme
-	providerv1alpha1.SchemeBuilder.AddToScheme(composed.Scheme)
+	if err := providerv1alpha1.SchemeBuilder.AddToScheme(composed.Scheme); err != nil {
+		panic(err)
+	}
 }
 
 // RunFunction runs the Function.
 func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequest) (*fnv1beta1.RunFunctionResponse, error) {
-	f.log.Info("Running Servicebinding Decorator", "tag", req.GetMeta().GetTag())
+	f.log = f.log.WithValues(
+		req.GetMeta().GetTag(),
+	)
 
-	// This creates a new response to the supplied request. Note that Functions
-	// are run in a pipeline! Other Functions may have run before this one. If
-	// they did, response.To will copy their desired state from req to rsp. Be
-	// sure to pass through any desired state your Function is not concerned
-	// with unmodified.
+	f.log.Info("Running Servicebinding Decorator", "tag")
+
 	rsp := response.To(req, response.DefaultTTL)
 
 	oxr, err := request.GetObservedCompositeResource(req)
@@ -50,7 +50,8 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		response.Fatal(rsp, errors.Wrapf(err, "cannot get observed composite resource from %T", req))
 		return rsp, nil
 	}
-	log := f.log.WithValues(
+
+	f.log = f.log.WithValues(
 		"xr-apiversion", oxr.Resource.GetAPIVersion(),
 		"xr-kind", oxr.Resource.GetKind(),
 		"xr-name", oxr.Resource.GetName(),
@@ -64,7 +65,6 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 
 	claim := oxr.Resource.GetClaimReference()
 	if claim == nil {
-		log.Info("claim reference is nil, nothing to do", "tag", req.GetMeta().GetTag())
 		response.Normal(rsp, "claim reference is nil, nothing to do")
 		return rsp, nil
 	}
@@ -80,7 +80,8 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	// do we require the claim to specify a secret to write the connection details to?
 	if decorator.Config.RequireWriteConnectionSecretToRef {
 		// note, we do not treat this as an error, the claim is simply not bindable in this case
-		return f.normalAndDebug(rsp, "claim does not specify spec.writeConnectionSecretToRef, nothing to do"), nil
+		response.Normal(rsp, "claim does not specify spec.writeConnectionSecretToRef, nothing to do")
+		return rsp, nil
 	}
 
 	observed, err := request.GetObservedComposedResources(req)
@@ -95,24 +96,6 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 			connectionDetails[k] = v
 		}
 	}
-
-	// if len(oxr.ConnectionDetails) == 0 {
-	// 	dxr, err := request.GetDesiredCompositeResource(req)
-	// 	if err != nil {
-	// 		response.Fatal(rsp, errors.Wrap(err, "cannot get desired composite resource"))
-	// 		return rsp, nil
-	// 	}
-
-	// 	dxr.Resource.SetConditions(xpv1.Condition{
-	// 		Type:    xpv1.TypeReady,
-	// 		Status:  corev1.ConditionFalse,
-	// 		Reason:  xpv1.ConditionReason("BindingSecretNotReady"),
-	// 		Message: "EmptyConnectionDetails",
-	// 	})
-
-	// 	response.SetDesiredCompositeResource(rsp, dxr)
-	// 	return f.normalAndDebug(rsp, "no connection details (yet)"), nil
-	// }
 
 	// the claim didn't specify a secret to write the connection details to
 	// but we also don't require it to do so, rather it's up to us to create a secret now
@@ -134,9 +117,12 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 
 	enc := scheme.Codecs.EncoderForVersion(&json.Serializer{}, corev1.SchemeGroupVersion)
 	buffer := &bytes.Buffer{}
-	enc.Encode(&secret, buffer)
+	if err := enc.Encode(&secret, buffer); err != nil {
+		response.Fatal(rsp, errors.Wrapf(err, "cannot encode secret %T", secret))
+		return rsp, nil
+	}
 
-	// the object wrapper for the secret
+	// the provider-kubernetes object for the secret
 	object := providerv1alpha1.Object{
 		Spec: providerv1alpha1.ObjectSpec{
 			ForProvider: providerv1alpha1.ObjectParameters{
@@ -164,10 +150,7 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		return rsp, nil
 	}
 
-	// log object
-	f.log.Info("desired", "composed", composed)
-
-	desiredComposed["binding"] = &resource.DesiredComposed{Resource: composed}
+	desiredComposed["bindingsecret"] = &resource.DesiredComposed{Resource: composed}
 
 	if err := response.SetDesiredComposedResources(rsp, desiredComposed); err != nil {
 		response.Fatal(rsp, errors.Wrapf(err, "cannot set desired composed resources in %T", rsp))
@@ -195,11 +178,5 @@ func setStatusBindingName(secretName string, req *fnv1beta1.RunFunctionRequest, 
 		response.Fatal(rsp, errors.Wrapf(err, "cannot set desired composite resource in %T", rsp))
 	}
 
-	return rsp
-}
-
-func (f *Function) normalAndDebug(rsp *fnv1beta1.RunFunctionResponse, msg string) *fnv1beta1.RunFunctionResponse {
-	f.log.Info(msg)
-	response.Normal(rsp, msg)
 	return rsp
 }

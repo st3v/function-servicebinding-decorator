@@ -8,8 +8,7 @@ require (
 	github.com/alecthomas/kong v0.8.1
 	github.com/crossplane-contrib/provider-kubernetes v0.9.0
 	github.com/crossplane/crossplane-runtime v1.15.0-rc.0
-	github.com/crossplane/function-sdk-go v0.0.0-20231030184106-7a3f487b6483
-	github.com/go-logr/logr v1.2.4
+	github.com/crossplane/function-sdk-go v0.0.0-20231031184832-8835a3eba04d
 	github.com/google/go-cmp v0.6.0
 	google.golang.org/protobuf v1.31.0
 	k8s.io/api v0.28.3
@@ -25,6 +24,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/go-json-experiment/json v0.0.0-20231013223334-54c864be5b8d // indirect
+	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/zapr v1.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect

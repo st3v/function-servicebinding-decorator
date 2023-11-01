@@ -5,19 +5,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-logr/logr"
-	"github.com/go-logr/logr/funcr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
 
 	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
 	"github.com/crossplane/function-sdk-go/resource"
 	"github.com/crossplane/function-sdk-go/response"
+
+	"github.com/st3v/servicebinding-decorator/input/v1alpha1"
 )
 
 func TestRunFunction(t *testing.T) {
@@ -36,55 +35,147 @@ func TestRunFunction(t *testing.T) {
 		args   args
 		want   want
 	}{
-		"ResponseIsReturned": {
-			reason: "The Function should return the expected result",
+		"UseConnectionSecret": {
+			reason: "Claim specifies spec.writeConnectionSecretToRef",
 			args: args{
 				req: &fnv1beta1.RunFunctionRequest{
-					Meta: &fnv1beta1.RequestMeta{Tag: "hello"},
-					Input: resource.MustStructJSON(`{
-						"apiVersion": "fn.crossplane.servicebinding.io",
-						"kind": "Decorator",
-						"config": {
-							"requireWriteConnectionSecretToRef": true,
-							"providerConfigName": "my-provider-config"
-						}
-					}`),
+					Input: resource.MustStructObject(&v1alpha1.Decorator{
+						Config: v1alpha1.Config{
+							RequireWriteConnectionSecretToRef: true,
+						},
+					}),
 					Observed: &fnv1beta1.State{
 						Composite: &fnv1beta1.Resource{
-							ConnectionDetails: map[string][]byte{
-								"username": []byte("foo"),
-								"password": []byte("bar"),
-							},
-							Resource: &structpb.Struct{
-								Fields: map[string]*structpb.Value{
-									"metadata": structpb.NewStructValue(&structpb.Struct{
-										Fields: map[string]*structpb.Value{
-											"uid": structpb.NewStringValue("my-uid"),
-										},
-									}),
-									"spec": structpb.NewStructValue(&structpb.Struct{
-										Fields: map[string]*structpb.Value{
-											"claimRef": structpb.NewStructValue(&structpb.Struct{
-												Fields: map[string]*structpb.Value{
-													"name":      structpb.NewStringValue("my-claim"),
-													"namespace": structpb.NewStringValue("my-claim-namespace"),
-												},
-											}),
-										},
-									}),
+							Resource: resource.MustStructJSON(`{
+								"apiVersion":"example.org/v1",
+								"kind":"XR",
+								"metadata":{
+									"uid":"my-uid"
 								},
-							},
+								"spec":{
+									"claimRef":{
+										"name":"my-claim",
+										"namespace":"my-namespace"
+									},
+									"writeConnectionSecretToRef":{
+										"name":"my-secret",
+										"namespace":"my-namespace"
+									}
+								}
+							}`),
+						},
+					},
+					Desired: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{"apiVersion":"example.org/v1","kind":"XR"}`),
 						},
 					},
 				},
 			},
 			want: want{
 				rsp: &fnv1beta1.RunFunctionResponse{
-					Meta: &fnv1beta1.ResponseMeta{Tag: "hello", Ttl: durationpb.New(response.DefaultTTL)},
-					Results: []*fnv1beta1.Result{
-						{
-							Severity: fnv1beta1.Severity_SEVERITY_NORMAL,
-							Message:  "I was run with input \"Hello, world!\"",
+					Meta: &fnv1beta1.ResponseMeta{Ttl: durationpb.New(response.DefaultTTL)},
+					Desired: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{
+								"apiVersion":"example.org/v1",
+								"kind":"XR",
+								"status":{
+									"binding":{
+										"name":"my-secret"
+									}
+								}
+							}`),
+						},
+						Resources: map[string]*fnv1beta1.Resource{},
+					},
+				},
+			},
+		},
+		"RenderNewSecret": {
+			reason: "Claim does not specify spec.writeConnectionSecretToRef",
+			args: args{
+				req: &fnv1beta1.RunFunctionRequest{
+					Input: resource.MustStructObject(&v1alpha1.Decorator{
+						Config: v1alpha1.Config{
+							RequireWriteConnectionSecretToRef: false,
+							ProviderConfigRef: &v1alpha1.ProviderConfigRef{
+								Name: "my-provider-config",
+							},
+						},
+					}),
+					Observed: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{
+								"apiVersion":"example.org/v1",
+								"kind":"XR",
+								"metadata":{
+									"uid":"my-uid"
+								},
+								"spec":{
+									"claimRef":{
+										"name":"my-claim"
+									}
+								}
+							}`),
+						},
+						Resources: map[string]*fnv1beta1.Resource{
+							"database": {
+								ConnectionDetails: map[string][]byte{
+									"username": []byte("my-user"),
+									"password": []byte("my-password"),
+								},
+							},
+						},
+					},
+					Desired: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{"apiVersion":"example.org/v1","kind":"XR"}`),
+						},
+					},
+				},
+			},
+			want: want{
+				rsp: &fnv1beta1.RunFunctionResponse{
+					Meta: &fnv1beta1.ResponseMeta{Ttl: durationpb.New(response.DefaultTTL)},
+					Desired: &fnv1beta1.State{
+						Composite: &fnv1beta1.Resource{
+							Resource: resource.MustStructJSON(`{
+								"apiVersion":"example.org/v1",
+								"kind":"XR",
+								"status":{
+									"binding":{
+										"name":"my-uid"
+									}
+								}
+							}`),
+						},
+						Resources: map[string]*fnv1beta1.Resource{
+							"bindingsecret": {
+								Resource: resource.MustStructJSON(`{
+									"apiVersion":"kubernetes.crossplane.io/v1alpha1",
+									"kind":"Object",
+									"spec":{
+										"forProvider":{
+											"manifest":{
+												"apiVersion":"v1",
+												"kind":"Secret",
+												"metadata":{
+													"name": "my-uid",
+													"creationTimestamp":null
+												},
+												"data":{
+													"password":"bXktcGFzc3dvcmQ=",
+													"username":"bXktdXNlcg=="
+												}
+											}
+										},
+										"providerConfigRef":{
+											"name":"my-provider-config"
+										}
+									}
+								}`),
+							},
 						},
 					},
 				},
@@ -94,13 +185,12 @@ func TestRunFunction(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			f := &Function{log: logging.NewLogrLogger(NewStdoutLogger())}
+			f := &Function{log: logging.NewNopLogger()}
 			rsp, err := f.RunFunction(tc.args.ctx, tc.args.req)
 
 			if diff := cmp.Diff(tc.want.rsp, rsp, protocmp.Transform()); diff != "" {
 				t.Errorf("%s\nf.RunFunction(...): -want rsp, +got rsp:\n%s", tc.reason, diff)
-
-				fmt.Printf("\n================\nRESPONSE:\n%+v\n\n", rsp)
+				fmt.Println(diff)
 			}
 
 			if diff := cmp.Diff(tc.want.err, err, cmpopts.EquateErrors()); diff != "" {
@@ -108,15 +198,4 @@ func TestRunFunction(t *testing.T) {
 			}
 		})
 	}
-}
-
-// NewStdoutLogger returns a logr.Logger that prints to stdout.
-func NewStdoutLogger() logr.Logger {
-	return funcr.New(func(prefix, args string) {
-		if prefix != "" {
-			fmt.Printf("%s: %s\n", prefix, args)
-		} else {
-			fmt.Println(args)
-		}
-	}, funcr.Options{})
 }

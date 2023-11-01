@@ -16,9 +16,10 @@ github.com/crossplane/crossplane-runtime/pkg/logging
 github.com/crossplane/crossplane-runtime/pkg/meta
 github.com/crossplane/crossplane-runtime/pkg/resource
 github.com/crossplane/crossplane-runtime/pkg/resource/unstructured/claim
-# github.com/crossplane/function-sdk-go v0.0.0-20231030184106-7a3f487b6483
+# github.com/crossplane/function-sdk-go v0.0.0-20231031184832-8835a3eba04d
 ## explicit; go 1.21
 github.com/crossplane/function-sdk-go
+github.com/crossplane/function-sdk-go/context
 github.com/crossplane/function-sdk-go/errors
 github.com/crossplane/function-sdk-go/logging
 github.com/crossplane/function-sdk-go/proto/v1beta1
@@ -48,10 +49,9 @@ github.com/go-json-experiment/json/internal/jsonflags
 github.com/go-json-experiment/json/internal/jsonopts
 github.com/go-json-experiment/json/internal/jsonwire
 github.com/go-json-experiment/json/jsontext
-# github.com/go-logr/logr v1.2.4
-## explicit; go 1.16
+# github.com/go-logr/logr v1.3.0
+## explicit; go 1.18
 github.com/go-logr/logr
-github.com/go-logr/logr/funcr
 # github.com/go-logr/zapr v1.2.4
 ## explicit; go 1.16
 github.com/go-logr/zapr

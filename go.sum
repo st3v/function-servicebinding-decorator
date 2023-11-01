@@ -73,8 +73,8 @@ github.com/crossplane-contrib/provider-kubernetes v0.9.0 h1:UtoTJdhYnR9GKJeWBlqc
 github.com/crossplane-contrib/provider-kubernetes v0.9.0/go.mod h1:M7CIGLTufSGM0+vElSFcoZE2QdfVn51WBbTqvHPidpI=
 github.com/crossplane/crossplane-runtime v1.15.0-rc.0 h1:JwcYj3zrhm7u6YQSwHWa03T0rWkO3cIA1mp7h6ezzf0=
 github.com/crossplane/crossplane-runtime v1.15.0-rc.0/go.mod h1:aOP+5W2wKpvthVs3pFNbVOe1jwrKYbJho0ThGNCVz9o=
-github.com/crossplane/function-sdk-go v0.0.0-20231030184106-7a3f487b6483 h1:dwXwbQTEbYyrVmuv7+QCfW9zLf863rvT+cGK6GFMyYQ=
-github.com/crossplane/function-sdk-go v0.0.0-20231030184106-7a3f487b6483/go.mod h1:WX2L2pWKKhYgw/yEY6JD0HmUPFqOGNmjd1uX+6I/hoE=
+github.com/crossplane/function-sdk-go v0.0.0-20231031184832-8835a3eba04d h1:BMTcCUmwaVXjc9sG5J9uWXu8hJW9TRhXQsvLXtcmSF0=
+github.com/crossplane/function-sdk-go v0.0.0-20231031184832-8835a3eba04d/go.mod h1:AvJq+E7NouikO0FvIHm7BKlaHEydq9HmSPVr23Ld0/M=
 github.com/crossplane/upjet v0.11.0-rc.0.0.20231012093706-c4a76d2a7505 h1:eCmYgfRopVn6r8RM1Ra4XQAPwVsjTGfktBj2Dk7yy+Y=
 github.com/crossplane/upjet v0.11.0-rc.0.0.20231012093706-c4a76d2a7505/go.mod h1:Ov+eoYS2n0Zge/E50zm65meOTYbAHnU6jPt27fQrpbc=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -102,8 +102,9 @@ github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2
 github.com/go-json-experiment/json v0.0.0-20231013223334-54c864be5b8d h1:zqfo2jECgX5eYQseB/X+uV4Y5ocGOG/vG/LTztUCyPA=
 github.com/go-json-experiment/json v0.0.0-20231013223334-54c864be5b8d/go.mod h1:6daplAwHHGbUGib4990V3Il26O0OC4aRyvewaaAihaA=
 github.com/go-logr/logr v1.2.0/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
-github.com/go-logr/logr v1.2.4 h1:g01GSCwiDw2xSZfjJ2/T9M+S6pFdcNtFYsp+Y43HYDQ=
 github.com/go-logr/logr v1.2.4/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
+github.com/go-logr/logr v1.3.0 h1:2y3SDp0ZXuc6/cjLSZ+Q3ir+QB9T/iG5yYRXqsagWSY=
+github.com/go-logr/logr v1.3.0/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/zapr v1.2.4 h1:QHVo+6stLbfJmYGkQ7uGHUCu5hnAFAj6mDe6Ea0SeOo=
 github.com/go-logr/zapr v1.2.4/go.mod h1:FyHWQIzQORZ0QVE1BtVHv3cKtNLuXsbNLtpuhNapBOA=
 github.com/go-openapi/jsonpointer v0.19.6 h1:eCs3fxoIi3Wh6vtgmLTOjdhSpiqphQ+DaPn38N2ZdrE=
