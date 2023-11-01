@@ -29,6 +29,11 @@ spec:
           config:
             description: Config specifies the configuration for the decorator
             properties:
+              bindingDetailOverrides:
+                additionalProperties:
+                  type: string
+                description: specifies overrides for the binding details
+                type: object
               providerConfigRef:
                 description: specifies the name of the provider config to use when
                   creating the binding secret
@@ -49,6 +54,7 @@ spec:
                   refers to a different namespace
                 type: boolean
             required:
+            - bindingDetailOverrides
             - providerConfigRef
             - requireWriteConnectionSecretToRef
             type: object

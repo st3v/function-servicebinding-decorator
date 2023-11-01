@@ -102,6 +102,9 @@ func TestRunFunction(t *testing.T) {
 							ProviderConfigRef: &v1alpha1.ProviderConfigRef{
 								Name: "my-provider-config",
 							},
+							BindingSecretOverrides: map[string]string{
+								"type": "my-database",
+							},
 						},
 					}),
 					Observed: &fnv1beta1.State{
@@ -122,8 +125,9 @@ func TestRunFunction(t *testing.T) {
 						Resources: map[string]*fnv1beta1.Resource{
 							"database": {
 								ConnectionDetails: map[string][]byte{
-									"username": []byte("my-user"),
-									"password": []byte("my-password"),
+									"username": []byte("their-user"),
+									"password": []byte("their-password"),
+									"type":     []byte("their-type"),
 								},
 							},
 						},
@@ -165,8 +169,9 @@ func TestRunFunction(t *testing.T) {
 													"creationTimestamp":null
 												},
 												"data":{
-													"password":"bXktcGFzc3dvcmQ=",
-													"username":"bXktdXNlcg=="
+													"password":"dGhlaXItcGFzc3dvcmQ=",
+													"username":"dGhlaXItdXNlcg==",
+													"type":"bXktZGF0YWJhc2U="
 												}
 											}
 										},

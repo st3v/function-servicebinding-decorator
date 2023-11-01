@@ -97,6 +97,10 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		}
 	}
 
+	for k, v := range decorator.Config.BindingSecretOverrides {
+		connectionDetails[k] = []byte(v)
+	}
+
 	// the claim didn't specify a secret to write the connection details to
 	// but we also don't require it to do so, rather it's up to us to create a secret now
 	// we can't do this by setting spec.writeConnectionSecretToRef on the XR though as we are

@@ -32,6 +32,9 @@ type Config struct {
 
 	// specifies the name of the provider config to use when creating the binding secret
 	ProviderConfigRef *ProviderConfigRef `json:"providerConfigRef"`
+
+	// specifies overrides for the binding details
+	BindingSecretOverrides map[string]string `json:"bindingSecretOverrides"`
 }
 
 // ProviderConfigRef specifies the provider config to use when creating the binding secret

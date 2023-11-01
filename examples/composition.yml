@@ -120,16 +120,6 @@ spec:
           spec:
             connectionDetails:
             - apiVersion: v1
-              fieldPath: data.provider
-              kind: Secret
-              namespace: ""
-              toConnectionSecretKey: provider
-            - apiVersion: v1
-              fieldPath: data.type
-              kind: Secret
-              namespace: ""
-              toConnectionSecretKey: type
-            - apiVersion: v1
               fieldPath: spec.clusterIP
               kind: Service
               namespace: ""
@@ -167,8 +157,6 @@ spec:
                       mysql-password: $(value)
                       mysql-root-password: $(value)
                       port: "3306"
-                      provider: bitnami
-                      type: mysql
                       username: mysql
                     type: connection.crossplane.io/v1alpha1
             providerConfigRef:
@@ -176,12 +164,6 @@ spec:
             writeConnectionSecretToRef:
               namespace: crossplane-system
         connectionDetails:
-        - fromConnectionSecretKey: provider
-          type: FromConnectionSecretKey
-          name: provider
-        - fromConnectionSecretKey: type
-          type: FromConnectionSecretKey
-          name: type
         - fromConnectionSecretKey: host
           type: FromConnectionSecretKey
           name: host
@@ -217,12 +199,6 @@ spec:
           toFieldPath: spec.connectionDetails[4].namespace
           type: FromCompositeFieldPath
         - fromFieldPath: metadata.name
-          toFieldPath: spec.connectionDetails[5].namespace
-          type: FromCompositeFieldPath
-        - fromFieldPath: metadata.name
-          toFieldPath: spec.connectionDetails[6].namespace
-          type: FromCompositeFieldPath
-        - fromFieldPath: metadata.name
           toFieldPath: spec.forProvider.manifest.metadata.name
           type: FromCompositeFieldPath
         - fromFieldPath: metadata.name
@@ -254,12 +230,6 @@ spec:
         - fromFieldPath: metadata.name
           toFieldPath: spec.connectionDetails[4].name
           type: FromCompositeFieldPath
-        - fromFieldPath: metadata.name
-          toFieldPath: spec.connectionDetails[5].name
-          type: FromCompositeFieldPath
-        - fromFieldPath: metadata.name
-          toFieldPath: spec.connectionDetails[6].name
-          type: FromCompositeFieldPath
   - step: servicebinding-decorator
     functionRef:
       name: function-servicebinding-decorator
@@ -270,3 +240,6 @@ spec:
         requireWriteConnectionSecretToRef: false
         providerConfigRef:
           name: kubernetes-provider
+        bindingSecretOverrides:
+          provider: bitnami
+          type: mysql

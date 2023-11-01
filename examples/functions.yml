@@ -7,7 +7,7 @@ metadata:
     render.crossplane.io/runtime: Development
     render.crossplane.io/runtime-development-target: localhost:9443
 spec:
-  package: st3v/function-servicebinding-decorator:v0.0.0-8854cf7
+  package: st3v/function-servicebinding-decorator:v0.0.0-e1c4041
 
 ---
 apiVersion: pkg.crossplane.io/v1beta1
